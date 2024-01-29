@@ -1,11 +1,13 @@
 [package]
 name = "melvin_rs"
-version = "0.0.0"
+version = "0.0.1"
+authors = ["HiveMind Studios"]
 edition = "2021"
 
 [dependencies]
+dotenv = "0.15.0"
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
-serenity = "0.11.2"
+serenity = "0.12"
 songbird = { version = "0.2.2", features = ["yt-dlp", "tokio", "serenity"] }
-tokio = "1.19.2"
+tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
