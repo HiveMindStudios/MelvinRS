@@ -6,9 +6,13 @@ edition = "2021"
 
 [dependencies]
 dotenv = "0.15.0"
-serde = { version = "1.0.196", features = ["derive"] }
-serde_json = "1.0"
-serenity = "0.12"
-songbird = { version = "0.2.2", features = ["yt-dlp", "tokio", "serenity"] }
-tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread", "signal"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
 poise = "0.6.1"
+songbird = { version = "0.4.0", features = ["builtin-queue", "serenity"] }
+lazy_static = "1.4.0"
+rand = "0.8.5"
+chrono = "0.4.33"
+timeago = "0.4.2"
+regex = "1.10.3"

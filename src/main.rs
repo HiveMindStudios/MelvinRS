@@ -33,7 +33,7 @@ async fn main() {
     dotenv().ok();
 
     let options = poise::FrameworkOptions {
-        commands: vec![commands::help(), commands::ping()],
+        commands: vec![commands::help(), commands::ping(), commands::roll()],
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("$".into()),
             edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(
