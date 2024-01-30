@@ -1,22 +1,22 @@
 mod commands;
 
-use poise::serenity_prelude as serenity;
-use dotenv::dotenv;
-use std::{
-    sync::Arc,
-    time::Duration,
-};
+use poise::serenity_prelude::{self as serenity, ActivityData};
+use std::sync::Arc;
+use std::time::Duration;
+
+/* commands */
+use crate::commands::help::*;
+use crate::commands::network::ping::*;
+use crate::commands::tools::roll::*;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
-pub struct Data {
-    // votes: Mutex<HashMap<String, u32>>,
-}
+pub struct Data;
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     match error {
-        poise::FrameworkError::Setup { error, ..} => panic!("Failed to start bot {:?}", error),
+        poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot {:?}", error),
         poise::FrameworkError::Command { error, ctx, .. } => {
             println!("Error in command `{}`: {:?}", ctx.command().name, error,);
         }
@@ -30,19 +30,22 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
+    dotenv::dotenv().expect("Failed to load .env file.");
+
+    let token = std::env::var("DISCORD_TOKEN").expect("Missing `DISCORD_TOKEN` environment variable!");
+    let prefix = std::env::var("PREFIX").expect("Missing `PREFIX` environment variable!");
+    let alternative_prefix = std::env::var("ALT_PREFIX").or_else("m.");
 
     let options = poise::FrameworkOptions {
-        commands: vec![commands::help(), commands::ping(), commands::roll()],
+        commands: vec![help(), ping(), roll()],
         prefix_options: poise::PrefixFrameworkOptions {
-            prefix: Some("$".into()),
+            prefix: Some(prefix.to_string().into()),
             edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(
                 Duration::from_secs(3600),
             ))),
-            // additional_prefixes: vec![
-            //     poise::Prefix::Literal("hey bot"),
-            //     poise::Prefix::Literal("hey bot,"),
-            // ],
+            additional_prefixes: vec![
+                poise::Prefix::Literal(alternative_prefix),
+            ],
             ..Default::default()
         },
 
@@ -85,7 +88,8 @@ async fn main() {
     let framework = poise::Framework::builder()
         .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
-                println!("Logged in as {}", _ready.user.name);
+                println!("Logged in as {} [id: {}]", _ready.user.name, _ready.user.id);
+                ctx.set_activity(Some(ActivityData::listening(prefix + "help")));
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     // votes: Mutex::new(HashMap::new()),
@@ -95,8 +99,6 @@ async fn main() {
         .options(options)
         .build();
 
-    let token = std::env::var("DISCORD_TOKEN")
-        .expect("Missing `DISCORD_TOKEN` env var");
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
