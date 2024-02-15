@@ -1,5 +1,7 @@
 // #![cfg(target_os = "windows")]
 
+use std::ops::Deref;
+
 use crate::{Context, Error};
 use fancy_regex::Regex;
 use rand::distributions::{Distribution, Uniform};
@@ -13,14 +15,15 @@ pub async fn roll(
     let _random = {
         let mut rng = rand::thread_rng();
         let dice_rolls = Regex::new(r"(\+|-|\/|\*)?([\d]*)d([\d]*)(kh|kl|r)?([\d])*").unwrap();
-        // let modifiers = Regex::new(r"(\+|-)+([\d]*)(?!d)").unwrap();
+        let modifiers = Regex::new(r"(\+|-)+([\d]*)(?!d)").unwrap();
 
         if let Some(roll_data) = roll_data {
             let roll_after_regex = dice_rolls
                 .captures(&roll_data)
                 .unwrap()
                 .expect("Error running regex");
-            // let mod_after_regex = modifiers.captures("").unwrap().expect("Error running regex");
+            let mut mod_after_regex = modifiers
+                .captures_iter(&roll_data);
 
             let roll_amount: i32 = roll_after_regex
                 .get(2)
@@ -62,8 +65,29 @@ pub async fn roll(
                     res += rolls[min_index];
                     rolls.remove(min_index);
                 }
-            } else {
-                res += rolls.iter().sum::<i32>();
+            } else if roll_mods == "r" {
+                for roll in rolls.iter_mut(){
+                    if *roll < roll_mods_amount{
+                        *roll == roll_mods_amount;
+                    }
+                }
+            }
+            res += rolls.iter().sum::<i32>();
+            //* dealing with modifiers */
+            let current_mod = mod_after_regex.next();
+            let is_none = current_mod.is_none();
+            while !is_none.clone() {
+                let curr = current_mod.as_ref().clone();
+                let tmp_sign = curr.unwrap().clone();
+                let test_sign = tmp_sign.as_ref().unwrap().get(1).expect("no group").as_str();
+                let tmp_val = curr.unwrap().clone();
+                let val = tmp_val.as_ref().unwrap().get(2).unwrap().as_str().parse::<i32>().unwrap();
+                if test_sign == "-" {
+                    res -= val;
+                }
+                else{
+                    res += val;
+                }
             }
         }
     };
